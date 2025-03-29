@@ -104,12 +104,12 @@ def chatbot(user_input, history):
         }
 
     # Step 1: Ask for Starting Location
-    if not state["starting_location"]:
+    if state["starting_location"]:
         state["starting_location"] = user_input
         return "Got it! Now, enter your **destination city** 🏙️."
 
     # Step 2: Ask for Destination City
-    if not state["city"]:
+    if state["city"]:
         state["city"] = user_input
         return "Nice! How many **days** are you planning to stay? 📅 (Enter a number)"
 
@@ -122,7 +122,7 @@ def chatbot(user_input, history):
         return "Great! What's your **budget**? (low, mid-range, luxury) 💰"
 
     # Step 4: Ask for Budget
-    if not state["budget"]:
+    if state["budget"]:
         state["budget"] = user_input
         return "Understood! Finally, list your **interests** (e.g., beaches, museums, nightlife) 🎭."
 
