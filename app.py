@@ -18,7 +18,7 @@ class PlannerState(TypedDict):
 # Initialize LLM
 llm = ChatGroq(
     temperature=0,
-    groq_api_key="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",
+    groq_api_key=os.getenv("GROQ_API_KEY"),  # Secure your API key
     model_name="llama-3.3-70b-versatile"
 )
 
@@ -96,17 +96,20 @@ def chatbot(user_input, history, state):
     else:
         return "Your itinerary is ready! Do you need any modifications? ✈️", state
 
-# Build Gradio chatbot interface
-chat_interface = gr.ChatInterface(
-    chatbot,
-    title="Travel Itinerary Chatbot 🤖✈️",
-    description="Tell me about your trip, and I'll create a **personalized travel itinerary** for you! 🚀",
-    theme="default",
-    type="messages",
-    examples=[["Hey, I am your Travel Planner. Tell me about your starting location!"]],
-    state=init_state()  # Ensure state persistence
-)
+# Use Gradio Blocks instead of ChatInterface
+with gr.Blocks() as demo:
+    chatbot_ui = gr.Chatbot()
+    user_input = gr.Textbox(placeholder="Type your message here...")
+    submit_button = gr.Button("Submit")
+    state = gr.State(init_state())  # Add persistent state
+
+    def process_input(user_input, chat_history, state):
+        response, state = chatbot(user_input, chat_history, state)
+        chat_history.append((user_input, response))
+        return chat_history, state
+
+    submit_button.click(process_input, inputs=[user_input, chatbot_ui, state], outputs=[chatbot_ui, state])
 
 # Launch chatbot
 port = int(os.getenv("PORT", 5000))
-chat_interface.launch(server_name="0.0.0.0", server_port=port)
+demo.launch(server_name="0.0.0.0", server_port=port)
