@@ -15,10 +15,14 @@ class PlannerState(TypedDict):
     interests: List[str]
     itinerary: str
 
+groq_api_key = os.getenv("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")
+if not groq_api_key:
+    raise ValueError("🚨 Error: Missing GROQ_API_KEY. Set it in environment variables.")
+
 # Initialize LLM
 llm = ChatGroq(
     temperature=0,
-    groq_api_key=os.getenv("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"),  # Secure your API key
+    groq_api_key=groq_api_key,  # Secure your API key
     model_name="llama-3.3-70b-versatile"
 )
 
