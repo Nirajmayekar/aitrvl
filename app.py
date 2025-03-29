@@ -91,34 +91,29 @@ state = PlannerState(
 #     else:
 #         return "Your itinerary is ready! Do you need any modifications? ✈️"
 def chatbot(user_input, history):
-    # Initialize state at the start of each conversation
+    # Initialize state
     if not history:
         history = {"starting_location": "", "city": "", "trip_duration": 0, "budget": "", "interests": [], "itinerary": ""}
 
-    # Step 1: Ask for Starting Location
     if history["starting_location"] == "":
         history["starting_location"] = user_input
-        return "Got it! Now, enter your **destination city** 🏙️.", history
+        return "Got it! Now, enter your **destination city** 🏙️."
 
-    # Step 2: Ask for City
     elif history["city"] == "":
         history["city"] = user_input
-        return "Nice! How many days are you planning to stay? 📅", history
+        return "Nice! How many days are you planning to stay? 📅"
 
-    # Step 3: Ask for Trip Duration
     elif history["trip_duration"] == 0:
         try:
             history["trip_duration"] = int(user_input)
         except ValueError:
-            return "Please enter a number for trip duration (e.g., '3' instead of '3 weeks').", history
-        return "Great! What's your **budget**? (low, mid-range, luxury) 💰", history
+            return "Please enter a **number** for trip duration (e.g., '3' instead of '3 weeks')."
+        return "Great! What's your **budget**? (low, mid-range, luxury) 💰"
 
-    # Step 4: Ask for Budget
     elif history["budget"] == "":
         history["budget"] = user_input
-        return "Understood! Finally, list your **interests** (e.g., beaches, museums, nightlife) 🎭.", history
+        return "Understood! Finally, list your **interests** (e.g., beaches, museums, nightlife) 🎭."
 
-    # Step 5: Ask for Interests
     elif not history["interests"]:
         history["interests"] = [interest.strip() for interest in user_input.split(',')]
         
@@ -133,11 +128,10 @@ def chatbot(user_input, history):
 
         history["itinerary"] = response.content
 
-        # Return the itinerary & reset history for new trip planning
-        final_response = f"✅ **Here’s your travel itinerary:**\n\n{history['itinerary']}\n\nWould you like to plan another trip? 🚀"
-        return final_response, None  # Reset history after completion
+        return f"✅ **Here’s your travel itinerary:**\n\n{history['itinerary']}\n\nWould you like to plan another trip? 🚀"
 
-    return "Let's start a new trip! Tell me your **starting location** again. 🌍", None
+    return "Let's start a new trip! Tell me your **starting location** again. 🌍"
+
 
 
 
