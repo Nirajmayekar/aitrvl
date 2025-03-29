@@ -15,7 +15,12 @@ class PlannerState(TypedDict):
     interests: List[str]
     itinerary: str
 
-groq_api_key = os.getenv("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")
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # Load environment variables from .env
+
+groq_api_key = os.getenv("GROQ_API_KEY")
 if not groq_api_key:
     raise ValueError("🚨 Error: Missing GROQ_API_KEY. Set it in environment variables.")
 
