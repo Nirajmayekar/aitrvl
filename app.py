@@ -107,5 +107,8 @@ chat_interface = gr.ChatInterface(
 )
 
 # Launch chatbot
-chat_interface.launch(share=True)
+# chat_interface.launch(share=True)
 # chat_interface.export("static")
+import os
+port = int(os.environ.get("PORT", 8080))
+chat_interface.launch(server_name="0.0.0.0", server_port=port)
