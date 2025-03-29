@@ -144,6 +144,7 @@ chat_interface = gr.ChatInterface(
     theme="default",
     type="messages",
     examples=[["Hey, I am your Travelling planner ,tell me about your start location of your journey. "]],
+    state=init_state()  # Add state persistence
 )
 
 # Launch chatbot
