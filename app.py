@@ -47,9 +47,11 @@ itinerary_prompt = ChatPromptTemplate.from_messages([
 ])
 
 # Initialize conversation history
-state = PlannerState(
-    messages=[], city="", starting_location="", trip_duration=0, budget="", interests=[], itinerary=""
-)
+# state = PlannerState(
+#     messages=[], city="", starting_location="", trip_duration=0, budget="", interests=[], itinerary=""
+# )
+def init_state():
+    return PlannerState(messages=[], city="", starting_location="", trip_duration=0, budget="", interests=[], itinerary="")
 
 # Define chatbot function
 # def chatbot(user_input, history):
@@ -90,62 +92,47 @@ state = PlannerState(
 
 #     else:
 #         return "Your itinerary is ready! Do you need any modifications? ✈️"
-def chatbot(user_input, history):
-    global state  # Keep track of user progress
-    
-    if not isinstance(state, dict):
-        state = {
-            "starting_location": "",
-            "city": "",
-            "trip_duration": 0,
-            "budget": "",
-            "interests": [],
-            "itinerary": ""
-        }
+def chatbot(user_input, history, state):
+    if not state:
+        state = init_state()
 
-    # Step 1: Ask for Starting Location
-    if state["starting_location"]:
+    # Guide user step-by-step
+    if state["starting_location"] == "":
         state["starting_location"] = user_input
-        return "Got it! Now, enter your **destination city** 🏙️."
+        return "Got it! Now, enter your **destination city** 🏙️.", state
 
-    # Step 2: Ask for Destination City
-    if state["city"]:
+    elif state["city"] == "":
         state["city"] = user_input
-        return "Nice! How many **days** are you planning to stay? 📅 (Enter a number)"
+        return "Nice! How many days are you planning to stay? 📅", state
 
-    # Step 3: Ask for Trip Duration (must be a number)
-    if state["trip_duration"] == 0:
+    elif state["trip_duration"] == 0:
         try:
-            state["trip_duration"] = int(user_input)  # Convert to integer
+            state["trip_duration"] = int(user_input)
+            return "Great! What's your **budget**? (low, mid-range, luxury) 💰", state
         except ValueError:
-            return "⚠️ Please enter a **number** for trip duration (e.g., 3, 7, 14)."
-        return "Great! What's your **budget**? (low, mid-range, luxury) 💰"
+            return "⚠️ Please enter a **valid number** for trip duration (e.g., 3, 7, 14).", state
 
-    # Step 4: Ask for Budget
-    if state["budget"]:
+    elif state["budget"] == "":
         state["budget"] = user_input
-        return "Understood! Finally, list your **interests** (e.g., beaches, museums, nightlife) 🎭."
+        return "Understood! Finally, list your **interests** (e.g., beaches, museums, nightlife) 🎭.", state
 
-    # Step 5: Ask for Interests
-    if not state["interests"]:
+    elif not state["interests"]:
         state["interests"] = [interest.strip() for interest in user_input.split(',')]
 
-        # Generate itinerary using LLM
+        # Generate itinerary
         response = llm.invoke(itinerary_prompt.format_messages(
-            city=state["city"],
-            starting_location=state["starting_location"],
-            trip_duration=state["trip_duration"],
-            budget=state["budget"],
-            interests=", ".join(state["interests"])
+            city=state['city'], 
+            starting_location=state['starting_location'], 
+            trip_duration=state['trip_duration'],
+            budget=state['budget'], 
+            interests=", ".join(state['interests'])
         ))
 
-        state["itinerary"] = response.content  # Store the itinerary
+        state["itinerary"] = response.content
+        return f"✅ **Here’s your travel itinerary:**\n\n{state['itinerary']}", state
 
-        return f"✅ **Here's your travel itinerary:**\n\n{state['itinerary']}\n\nWould you like to plan another trip? 🚀"
-
-    return "Your itinerary is ready! Do you need any modifications? ✈️"
-
-
+    else:
+        return "Your itinerary is ready! Do you need any modifications? ✈️", state
 
 
 
