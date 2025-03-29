@@ -66,7 +66,7 @@ def chatbot(user_input, history):
 
     elif state["city"] == "":
         state["city"] = user_input
-        return "Nice! How many days are you planning to stay? 📅"
+        return "Nice! How many number of days (numerical input only) are you planning to stay? 📅"
 
     elif state["trip_duration"] == 0:
         state["trip_duration"] = int(user_input)
@@ -74,7 +74,7 @@ def chatbot(user_input, history):
 
     elif state["budget"] == "":
         state["budget"] = user_input
-        return "Understood! Finally, list your **interests** (e.g., beaches, museums, nightlife) 🎭."
+        return "Understood! Finally, list your **interests** (e.g., dieatary prefrences ,Travel needs ,beaches, museums, nightlife) 🎭."
 
     elif state["interests"] == []:
         state["interests"] = [interest.strip() for interest in user_input.split(',')]
@@ -103,7 +103,7 @@ chat_interface = gr.ChatInterface(
     description="Tell me about your trip, and I'll create a **personalized travel itinerary** for you! 🚀",
     theme="default",
     type="messages",
-    examples=[["Hey,I am your Travelling planner tell me about your start location of your journey"]],
+    examples=[["Hey, I am your Travelling planner ,tell me about your start location of your journey"]],
 )
 
 # Launch chatbot
