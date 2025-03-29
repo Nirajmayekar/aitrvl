@@ -95,9 +95,11 @@ def chatbot(user_input, history, state):
         ))
 
         state["itinerary"] = response.content
+        state = init_state()
         return f"✅ **Here’s your travel itinerary:**\n\n{state['itinerary']}", state
 
     else:
+        state = init_state()
         return "Your itinerary is ready! Do you need any modifications? ✈️", state
 
 # Use Gradio Blocks instead of ChatInterface
