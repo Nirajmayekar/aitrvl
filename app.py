@@ -100,7 +100,7 @@ def chatbot(user_input, history, state):
         ))
 
         state["itinerary"] = response.content
-        state = init_state()
+        # state = init_state()
         return f"✅ **Here’s your travel itinerary:**\n\n{state['itinerary']}", state
 
     else:
