@@ -108,30 +108,49 @@ def chatbot(user_input, history, state):
         return "Your itinerary is ready! Do you need any modifications? ✈️", state
 import gradio as gr
 import os
+def debug_state(state):
+    print("\n--- DEBUG: Current State ---")
+    print(f"Starting Location: {state['starting_location']}")
+    print(f"City: {state['city']}")
+    print(f"Trip Duration: {state['trip_duration']}")
+    print(f"Budget: {state['budget']}")
+    print(f"Interests: {state['interests']}")
+    print(f"Itinerary: {state['itinerary']}\n")
+
 
 # Function to reset state after itinerary is generated
 def reset_state():
     return init_state()
 # Use Gradio Blocks instead of ChatInterface
+# Define Gradio Blocks
 with gr.Blocks() as demo:
     chatbot_ui = gr.Chatbot()
     user_input = gr.Textbox(placeholder="Type your message here...")
     submit_button = gr.Button("Submit")
-    state = gr.State(init_state())  # Add persistent state
+    state = gr.State(init_state())  # Persistent state
 
     def process_input(user_input, chat_history, state):
+        print(f"\n🔹 User Input: {user_input}")  # Debugging user input
+
         response, state = chatbot(user_input, chat_history, state)
+
+        # Print debug info
+        debug_state(state)
+
         chat_history.append((user_input, response))
-        if response and "itinerary" in response.lower():
-            return chat_history, state  # Do NOT reset immediately
+
+        # Check if itinerary was actually generated
+        if "✅ **Here’s your travel itinerary:**" in response:
+            print("\n🚀 Itinerary Successfully Generated!\n")
 
         # If user confirms no modifications, reset the state
         if user_input.lower() in ["no", "done", "thank you"]:
-            state = reset_state()  # Reset only after confirmation
+            print("\n🔄 Resetting state...")
+            state = reset_state()
+
         return chat_history, state
 
     submit_button.click(process_input, inputs=[user_input, chatbot_ui, state], outputs=[chatbot_ui, state])
-
 # Launch chatbot
 port = int(os.getenv("PORT", 5000))
 demo.launch(server_name="0.0.0.0", server_port=port)
