@@ -63,7 +63,7 @@ def chatbot(user_input, history):
 
     elif state["city"] == "":
         state["city"] = user_input
-        return "Nice! How many days are you planning to stay? 📅"
+        return "Nice! How many number of days (numerical only) are you planning to stay? 📅"
 
     elif state["trip_duration"] == 0:
         state["trip_duration"] = int(user_input)
@@ -71,7 +71,7 @@ def chatbot(user_input, history):
 
     elif state["budget"] == "":
         state["budget"] = user_input
-        return "Understood! Finally, list your **interests** (e.g., beaches, museums, nightlife) 🎭."
+        return "Understood! Finally, list your **interests,preferences** (e.g., beaches, museums, nightlife, dietary prefrences, travel options) 🎭."
 
     elif state["interests"] == []:
         state["interests"] = [interest.strip() for interest in user_input.split(',')]
@@ -106,7 +106,6 @@ chat_interface = gr.ChatInterface(
 # chat_interface.launch(server_name="0.0.0.0", server_port=8080)
 import os
 port = int(os.getenv("PORT", 5000))
-app.run(host="0.0.0.0", port=port)
+chat_interface.launch(server_name="0.0.0.0", server_port=port)
 
-
-chat_interface.export("static")
+# chat_interface.export("static")
