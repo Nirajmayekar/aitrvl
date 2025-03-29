@@ -149,7 +149,7 @@ chat_interface = gr.ChatInterface(
     description="Tell me about your trip, and I'll create a **personalized travel itinerary** for you! 🚀",
     theme="default",
     type="messages",
-    examples=[["Hey,I am your Travelling planner tell me about your start location of your journey"]],
+    examples=[["Hey, I am your Travelling planner ,tell me about your start location of your journey. "]],
 )
 
 # Launch chatbot
