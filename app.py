@@ -1,5 +1,4 @@
 import gradio as gr
-import os
 from typing import TypedDict, Annotated, List
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate
@@ -15,19 +14,10 @@ class PlannerState(TypedDict):
     interests: List[str]
     itinerary: str
 
-from dotenv import load_dotenv
-import os
-
-load_dotenv()  # Load environment variables from .env
-
-groq_api_key = os.getenv("GROQ_API_KEY")
-if not groq_api_key:
-    raise ValueError("🚨 Error: Missing GROQ_API_KEY. Set it in environment variables.")
-
 # Initialize LLM
 llm = ChatGroq(
     temperature=0,
-    groq_api_key=groq_api_key,  # Secure your API key
+    groq_api_key="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",
     model_name="llama-3.3-70b-versatile"
 )
 
@@ -56,40 +46,39 @@ itinerary_prompt = ChatPromptTemplate.from_messages([
     ("human", "Create a detailed, time-based itinerary for my trip."),
 ])
 
-# Initialize state
+# Initialize conversation history
+state = PlannerState(
+    messages=[], city="", starting_location="", trip_duration=0, budget="", interests=[], itinerary=""
+)
+
 def init_state():
     return PlannerState(messages=[], city="", starting_location="", trip_duration=0, budget="", interests=[], itinerary="")
 
 # Define chatbot function
-def chatbot(user_input, history, state):
-    if not state:
-        state = init_state()
-
-    print("STATE BEFORE:", state)  # Debugging step
-
+def chatbot(user_input, history):
+    global state
+  
     # Guide user step-by-step
     if state["starting_location"] == "":
+        
         state["starting_location"] = user_input
-        return "Got it! Now, enter your **destination city** 🏙️.", state
+        return "Got it! Now, enter your **destination city** 🏙️."
 
     elif state["city"] == "":
         state["city"] = user_input
-        return "Nice! How many days are you planning to stay? 📅", state
+        return "Nice! How many days are you planning to stay? 📅"
 
     elif state["trip_duration"] == 0:
-        try:
-            state["trip_duration"] = int(user_input)
-            return "Great! What's your **budget**? (low, mid-range, luxury) 💰", state
-        except ValueError:
-            return "⚠️ Please enter a **valid number** for trip duration (e.g., 3, 7, 14).", state
+        state["trip_duration"] = int(user_input)
+        return "Great! What's your **budget**? (low, mid-range, luxury) 💰"
 
     elif state["budget"] == "":
         state["budget"] = user_input
-        return "Understood! Finally, list your **interests** (e.g., beaches, museums, nightlife) 🎭.", state
+        return "Understood! Finally, list your **interests** (e.g., beaches, museums, nightlife) 🎭."
 
-    elif not state["interests"]:
+    elif state["interests"] == []:
         state["interests"] = [interest.strip() for interest in user_input.split(',')]
-
+        
         # Generate itinerary
         response = llm.invoke(itinerary_prompt.format_messages(
             city=state['city'], 
@@ -98,59 +87,25 @@ def chatbot(user_input, history, state):
             budget=state['budget'], 
             interests=", ".join(state['interests'])
         ))
-
+        
         state["itinerary"] = response.content
-        # state = init_state()
-        return f"✅ **Here’s your travel itinerary:**\n\n{state['itinerary']}", state
+        return f"✅ **Here’s your travel itinerary:**\n\n{state['itinerary']}"
 
     else:
-        state = init_state()
-        return "Your itinerary is ready! Do you need any modifications? ✈️", state
-import gradio as gr
-import os
-def debug_state(state):
-    print("\n--- DEBUG: Current State ---")
-    print(f"Starting Location: {state['starting_location']}")
-    print(f"City: {state['city']}")
-    print(f"Trip Duration: {state['trip_duration']}")
-    print(f"Budget: {state['budget']}")
-    print(f"Interests: {state['interests']}")
-    print(f"Itinerary: {state['itinerary']}\n")
+        state=init_state()
+        return state
+        # return "Your itinerary is ready! Do you need any modifications? ✈️"
 
+# Build Gradio chatbot interface
+chat_interface = gr.ChatInterface(
+    chatbot,
+    title="Travel Itinerary Chatbot 🤖✈️",
+    description="Tell me about your trip, and I'll create a **personalized travel itinerary** for you! 🚀",
+    theme="default",
+    type="messages",
+    examples=[["Hey,I am your Travelling planner tell me about your start location of your journey"]],
+)
 
-# Function to reset state after itinerary is generated
-def reset_state():
-    return init_state()
-# Use Gradio Blocks instead of ChatInterface
-# Define Gradio Blocks
-with gr.Blocks() as demo:
-    chatbot_ui = gr.Chatbot()
-    user_input = gr.Textbox(placeholder="Type your message here...")
-    submit_button = gr.Button("Submit")
-    state = gr.State(init_state())  # Persistent state
-
-    def process_input(user_input, chat_history, state):
-        print(f"\n🔹 User Input: {user_input}")  # Debugging user input
-
-        response, state = chatbot(user_input, chat_history, state)
-
-        # Print debug info
-        debug_state(state)
-
-        chat_history.append((user_input, response))
-
-        # Check if itinerary was actually generated
-        if "✅ **Here’s your travel itinerary:**" in response:
-            print("\n🚀 Itinerary Successfully Generated!\n")
-
-        # If user confirms no modifications, reset the state
-        if user_input.lower() in ["no", "done", "thank you"]:
-            print("\n🔄 Resetting state...")
-            state = reset_state()
-
-        return chat_history, state
-
-    submit_button.click(process_input, inputs=[user_input, chatbot_ui, state], outputs=[chatbot_ui, state])
 # Launch chatbot
-port = int(os.getenv("PORT", 5000))
-demo.launch(server_name="0.0.0.0", server_port=port)
+chat_interface.launch(share=True)
+# chat_interface.export("static")
