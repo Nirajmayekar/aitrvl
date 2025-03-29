@@ -106,7 +106,12 @@ def chatbot(user_input, history, state):
     else:
         state = init_state()
         return "Your itinerary is ready! Do you need any modifications? ✈️", state
+import gradio as gr
+import os
 
+# Function to reset state after itinerary is generated
+def reset_state():
+    return init_state()
 # Use Gradio Blocks instead of ChatInterface
 with gr.Blocks() as demo:
     chatbot_ui = gr.Chatbot()
@@ -117,6 +122,12 @@ with gr.Blocks() as demo:
     def process_input(user_input, chat_history, state):
         response, state = chatbot(user_input, chat_history, state)
         chat_history.append((user_input, response))
+        if response and "itinerary" in response.lower():
+            return chat_history, state  # Do NOT reset immediately
+
+        # If user confirms no modifications, reset the state
+        if user_input.lower() in ["no", "done", "thank you"]:
+            state = reset_state()  # Reset only after confirmation
         return chat_history, state
 
     submit_button.click(process_input, inputs=[user_input, chatbot_ui, state], outputs=[chatbot_ui, state])
