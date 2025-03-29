@@ -91,50 +91,54 @@ state = PlannerState(
 #     else:
 #         return "Your itinerary is ready! Do you need any modifications? ✈️"
 def chatbot(user_input, history):
-    global state
+    # Initialize state at the start of each conversation
+    if not history:
+        history = {"starting_location": "", "city": "", "trip_duration": 0, "budget": "", "interests": [], "itinerary": ""}
 
-    if state["starting_location"] == "":
-        state["starting_location"] = user_input
-        return "Got it! Now, enter your **destination city** 🏙️."
+    # Step 1: Ask for Starting Location
+    if history["starting_location"] == "":
+        history["starting_location"] = user_input
+        return "Got it! Now, enter your **destination city** 🏙️.", history
 
-    elif state["city"] == "":
-        state["city"] = user_input
-        return "Nice! How many days are you planning to stay? 📅"
+    # Step 2: Ask for City
+    elif history["city"] == "":
+        history["city"] = user_input
+        return "Nice! How many days are you planning to stay? 📅", history
 
-    elif state["trip_duration"] == 0:
+    # Step 3: Ask for Trip Duration
+    elif history["trip_duration"] == 0:
         try:
-            state["trip_duration"] = int(user_input)
+            history["trip_duration"] = int(user_input)
         except ValueError:
-            return "Please enter a number for trip duration (e.g., '3' instead of '3 weeks')."
-        return "Great! What's your **budget**? (low, mid-range, luxury) 💰"
+            return "Please enter a number for trip duration (e.g., '3' instead of '3 weeks').", history
+        return "Great! What's your **budget**? (low, mid-range, luxury) 💰", history
 
-    elif state["budget"] == "":
-        state["budget"] = user_input
-        return "Understood! Finally, list your **interests** (e.g., beaches, museums, nightlife) 🎭."
+    # Step 4: Ask for Budget
+    elif history["budget"] == "":
+        history["budget"] = user_input
+        return "Understood! Finally, list your **interests** (e.g., beaches, museums, nightlife) 🎭.", history
 
-    elif state["interests"] == []:
-        state["interests"] = [interest.strip() for interest in user_input.split(',')]
+    # Step 5: Ask for Interests
+    elif not history["interests"]:
+        history["interests"] = [interest.strip() for interest in user_input.split(',')]
         
         # Generate itinerary
         response = llm.invoke(itinerary_prompt.format_messages(
-            city=state['city'], 
-            starting_location=state['starting_location'], 
-            trip_duration=state['trip_duration'],
-            budget=state['budget'], 
-            interests=", ".join(state['interests'])
+            city=history['city'], 
+            starting_location=history['starting_location'], 
+            trip_duration=history['trip_duration'],
+            budget=history['budget'], 
+            interests=", ".join(history['interests'])
         ))
 
-        state["itinerary"] = response.content
+        history["itinerary"] = response.content
 
-        # Store response and reset chatbot state for a new session
-        final_response = f"✅ **Here’s your travel itinerary:**\n\n{state['itinerary']}\n\nWould you like to plan another trip? 🚀"
+        # Return the itinerary & reset history for new trip planning
+        final_response = f"✅ **Here’s your travel itinerary:**\n\n{history['itinerary']}\n\nWould you like to plan another trip? 🚀"
+        return final_response, None  # Reset history after completion
 
-        # Reset chatbot state
-        state = PlannerState(messages=[], city="", starting_location="", trip_duration=0, budget="", interests=[], itinerary="")
+    return "Let's start a new trip! Tell me your **starting location** again. 🌍", None
 
-        return final_response
-
-    return "Let's start a new trip! Tell me your **starting location** again. 🌍"
 
 
 
